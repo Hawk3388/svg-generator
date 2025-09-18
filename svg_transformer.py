@@ -449,6 +449,9 @@ class SVGGenerationModel(nn.Module):
         if self.transformer is None or self.text_tokenizer is None or self.svg_tokenizer is None:
             raise RuntimeError("Model or tokenizers not initialized.")
         
+        # Get device from model parameters
+        device = next(self.transformer.parameters()).device
+        
         # Tokenize text
         text_tokens = self.text_tokenizer.encode(
             text_prompt, 
@@ -457,6 +460,9 @@ class SVGGenerationModel(nn.Module):
             truncation=True,
             return_tensors='pt'
         )
+        
+        # Move to correct device
+        text_tokens = text_tokens.to(device)
         
         # Generate SVG tokens
         svg_token_ids = self.transformer.generate_svg(

@@ -246,6 +246,9 @@ class SVGTrainer:
         )
         self.model = self.model.to(self.device)
         
+        # Try to resume from latest checkpoint
+        self._try_resume_from_checkpoint()
+        
         # Initialize datasets
         self.train_dataset = OpenMojiDataset(
             config.data_dir, self.text_tokenizer, self.svg_tokenizer,
@@ -291,6 +294,9 @@ class SVGTrainer:
         # Initialize loss function
         self.criterion = nn.CrossEntropyLoss(ignore_index=self.svg_tokenizer.token_to_id['<PAD>'])
         
+        # Finish loading checkpoint if we found one
+        self._finish_checkpoint_loading()
+        
         # Training state
         self.step = 0
         self.epoch = 0
@@ -322,6 +328,89 @@ class SVGTrainer:
                 logging.StreamHandler()
             ]
         )
+    
+    def _try_resume_from_checkpoint(self):
+        """Try to resume training from the latest checkpoint"""
+        output_dir = Path(self.config.output_dir)
+        
+        # Find all checkpoint files
+        checkpoint_files = list(output_dir.glob("checkpoint_epoch_*.pth"))
+        
+        if not checkpoint_files:
+            logging.info("No checkpoints found. Starting training from scratch.")
+            return
+        
+        # Sort by epoch number to find the latest
+        def get_epoch_from_filename(path):
+            try:
+                # Extract epoch number from filename like "checkpoint_epoch_5.pth"
+                filename = path.stem
+                epoch_part = filename.split('_')[-1]
+                return int(epoch_part)
+            except:
+                return -1
+        
+        checkpoint_files.sort(key=get_epoch_from_filename, reverse=True)
+        latest_checkpoint = checkpoint_files[0]
+        
+        try:
+            logging.info(f"Found checkpoint: {latest_checkpoint.name}. Resuming training...")
+            
+            checkpoint = torch.load(latest_checkpoint, map_location=self.device)
+            
+            # Load model state
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            
+            # Load training state
+            self.epoch = checkpoint.get('epoch', 0)
+            self.step = checkpoint.get('step', 0)
+            self.best_val_loss = checkpoint.get('best_val_loss', float('inf'))
+            
+            # Load tokenizers if they exist in checkpoint
+            if 'svg_tokenizer_vocab' in checkpoint:
+                # Restore SVG tokenizer state
+                self.svg_tokenizer.token_to_id = checkpoint['svg_tokenizer_vocab']['token_to_id']
+                self.svg_tokenizer.id_to_token = checkpoint['svg_tokenizer_vocab']['id_to_token']
+                self.svg_tokenizer.next_id = checkpoint['svg_tokenizer_vocab']['next_id']
+                self.svg_tokenizer.freeze_vocab()
+                
+                # Update model tokenizer reference
+                self.model.svg_tokenizer = self.svg_tokenizer
+            
+            logging.info(f"✅ Resumed from epoch {self.epoch}, step {self.step}")
+            logging.info(f"📊 Best validation loss so far: {self.best_val_loss:.4f}")
+            
+            # Note: Optimizer and scheduler will be initialized after datasets
+            # We'll load their states in a separate method
+            self._checkpoint_to_load = checkpoint
+            
+        except Exception as e:
+            logging.error(f"❌ Failed to load checkpoint {latest_checkpoint.name}: {e}")
+            logging.info("Starting training from scratch instead.")
+            self.epoch = 0
+            self.step = 0
+            self.best_val_loss = float('inf')
+    
+    def _finish_checkpoint_loading(self):
+        """Finish loading checkpoint after optimizer/scheduler are created"""
+        if hasattr(self, '_checkpoint_to_load'):
+            try:
+                checkpoint = self._checkpoint_to_load
+                
+                # Load optimizer state
+                if 'optimizer_state_dict' in checkpoint:
+                    self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                    logging.info("✅ Optimizer state loaded")
+                
+                # Load scheduler state
+                if 'scheduler_state_dict' in checkpoint:
+                    self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+                    logging.info("✅ Scheduler state loaded")
+                
+                delattr(self, '_checkpoint_to_load')
+                
+            except Exception as e:
+                logging.warning(f"⚠️  Could not load optimizer/scheduler state: {e}")
     
     def _build_svg_vocabulary(self):
         """Build SVG vocabulary from dataset"""
@@ -447,12 +536,12 @@ class SVGTrainer:
         }
         
         # Save regular checkpoint
-        checkpoint_path = Path(self.config.output_dir) / f"checkpoint_epoch_{self.epoch}.pt"
+        checkpoint_path = Path(self.config.output_dir) / f"checkpoint_epoch_{self.epoch}.pth"
         torch.save(checkpoint, checkpoint_path)
         
         # Save best model
         if is_best:
-            best_path = Path(self.config.output_dir) / "best_model.pt"
+            best_path = Path(self.config.output_dir) / "best_model.pth"
             torch.save(checkpoint, best_path)
             logging.info(f"Saved new best model with val_loss: {self.best_val_loss:.4f}")
     

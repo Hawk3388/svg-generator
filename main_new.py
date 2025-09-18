@@ -13,13 +13,29 @@ from svg_tokenizer import SVGTokenizer
 from svg_transformer import SVGGenerationModel
 from transformers import AutoTokenizer
 
+# Import TrainingConfig to allow checkpoint loading
+try:
+    from train_new import TrainingConfig
+except ImportError:
+    # Fallback: create a dummy TrainingConfig class
+    class TrainingConfig:
+        def __init__(self):
+            self.d_model = 512
+            self.num_heads = 8
+            self.num_encoder_layers = 6
+            self.num_decoder_layers = 6
+            self.d_ff = 2048
+            self.max_text_len = 128
+            self.max_svg_len = 1024
+            self.dropout = 0.1
+
 
 class SVGGenerator:
     """
     Production-ready SVG Generator
     """
     
-    def __init__(self, model_path: str, device: str = "auto"):
+    def __init__(self, model_path: str, device: str = "cpu"):
         """
         Initialize SVG Generator
         
@@ -27,7 +43,7 @@ class SVGGenerator:
             model_path: Path to trained model checkpoint
             device: Device to use ("cuda", "cpu", or "auto")
         """
-        self.device = self._get_device(device)
+        self.device = torch.device(device)
         print(f"Using device: {self.device}")
         
         # Load model and tokenizers
@@ -38,36 +54,31 @@ class SVGGenerator:
         print(f"📊 SVG vocab size: {self.svg_tokenizer.get_vocab_size()}")
         print(f"🎯 Model ready for generation!")
     
-    def _get_device(self, device: str) -> torch.device:
-        """Determine device to use"""
-        if device == "auto":
-            if torch.cuda.is_available():
-                return torch.device("cuda")
-            else:
-                return torch.device("cpu")
-        else:
-            return torch.device(device)
-    
     def _load_model(self, model_path: str):
         """Load trained model and tokenizers"""
         print(f"Loading model from {model_path}...")
         
-        # Load checkpoint
-        checkpoint = torch.load(model_path, map_location=self.device)
-        
-        # Load configuration
-        config = checkpoint['config']
-        
-        # Initialize text tokenizer
-        self.text_tokenizer = checkpoint['text_tokenizer']
-        
-        # Initialize SVG tokenizer
-        self.svg_tokenizer = SVGTokenizer()
-        svg_vocab_data = checkpoint['svg_tokenizer_vocab']
-        self.svg_tokenizer.token_to_id = svg_vocab_data['token_to_id']
-        self.svg_tokenizer.id_to_token = {int(k): v for k, v in svg_vocab_data['id_to_token'].items()}
-        self.svg_tokenizer.next_id = svg_vocab_data['next_id']
-        self.svg_tokenizer.vocab_size = svg_vocab_data['vocab_size']
+        try:
+            # Load checkpoint
+            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
+            
+            # Load configuration
+            config = checkpoint['config']
+            
+            # Initialize text tokenizer
+            self.text_tokenizer = checkpoint['text_tokenizer']
+            
+            # Initialize SVG tokenizer
+            self.svg_tokenizer = SVGTokenizer()
+            svg_vocab_data = checkpoint['svg_tokenizer_vocab']
+            self.svg_tokenizer.token_to_id = svg_vocab_data['token_to_id']
+            self.svg_tokenizer.id_to_token = {int(k): v for k, v in svg_vocab_data['id_to_token'].items()}
+            self.svg_tokenizer.next_id = svg_vocab_data['next_id']
+            self.svg_tokenizer.vocab_size = svg_vocab_data['vocab_size']
+            
+        except Exception as e:
+            print(f"❌ Fehler beim Laden des Checkpoints: {e}")
+            raise
         
         # Initialize model
         self.model = SVGGenerationModel(config)
@@ -177,6 +188,8 @@ class SVGGenerator:
         # More sophisticated validation could be added here
         # For now, we'll consider it valid if it has basic structure
         return True
+    
+
     
     def _create_error_svg(self, error_message: str) -> str:
         """Create a simple error SVG"""
@@ -323,9 +336,7 @@ def main():
         print("💡 Trainiere zuerst das Model mit train_new.py")
         return
     
-    # Device
-    device_choice = input("Device (Enter für auto, 'cpu' für CPU): ").strip().lower()
-    device = "cpu" if device_choice == "cpu" else "auto"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     
     try:
         # Initialize generator

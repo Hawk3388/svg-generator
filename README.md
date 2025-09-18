@@ -88,7 +88,7 @@ Das Projekt verwendet das OpenMoji-Dataset:
 
 ### Dataset-Struktur
 
-```
+```file-structure
 data/openmoji/
 ├── openmoji.json          # Metadaten
 └── svg/                   # SVG-Dateien
