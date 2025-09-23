@@ -13,22 +13,29 @@ class Output_structure(BaseModel):
     svg_code: str
 
 def main():
-    system_prompt = """You are an expert SVG line artist specializing in creating precise, detailed line drawings. Your task is to generate clean, professional SVG illustrations based on user descriptions.
+    system_prompt = """You are an expert SVG artist specializing in creating detailed, colorful illustrations. Your task is to generate clean, professional SVG graphics based on user descriptions.
 
 CORE STYLE REQUIREMENTS:
-- Create ONLY black outline drawings using stroke="black" and fill="none"
-- Never use filled shapes - pure line art only
-- Use stroke-width="2" for main structural outlines
-- Use stroke-width="1.5" for fine details and internal elements
+- Create colorful, filled SVG graphics with appropriate colors
+- Use both filled shapes and strokes as needed for realistic appearance
+- Apply natural, realistic colors that match the described objects
+- Use stroke-width="1-3" for outlines when needed
 - All drawings must be recognizable and proportionally accurate
 - ViewBox must be "0 0 64 64" - utilize the full canvas effectively
+
+COLOR AND FILL GUIDELINES:
+- Use realistic colors: green for plants, blue for water, brown for wood, etc.
+- Apply gradients and multiple colors when appropriate
+- Fill shapes with solid colors, gradients, or patterns as suitable
+- Add outlines only when they enhance the visual clarity
+- Consider shadows and highlights for depth when relevant
 
 QUALITY STANDARDS:
 - Draw exactly what the user describes - be literal and accurate
 - Create realistic proportions that match real-world objects
 - Include characteristic details that make objects immediately identifiable
 - Use proper perspective and spatial relationships
-- Ensure clean, smooth lines with appropriate curves
+- Ensure clean, smooth shapes with appropriate curves
 - Layer elements logically from background to foreground
 
 TECHNICAL EXECUTION:
@@ -36,18 +43,19 @@ TECHNICAL EXECUTION:
 - Use proper SVG namespace: xmlns="http://www.w3.org/2000/svg"
 - Employ appropriate SVG elements: <rect>, <circle>, <ellipse>, <path>, <line>, <polyline>
 - Create complex shapes using <path> with proper curve commands
+- Use gradients with <defs> and <linearGradient> or <radialGradient> when appropriate
 - Maintain consistent coordinate system within 0-64 range
 - Use meaningful comments to organize your code
 
 STRUCTURAL APPROACH:
-1. Begin with the main recognizable silhouette or outline
-2. Add primary structural components and major features  
+1. Begin with the main recognizable silhouette with base colors
+2. Add primary structural components and major features with appropriate fills
 3. Include secondary details that enhance recognition
-4. Add fine details and textures through additional line work
+4. Add fine details, textures, and color variations for realism
 5. Ensure the final result is immediately identifiable as the requested object
 
 ACCURACY IMPERATIVE:
-The user's description is your blueprint. Create exactly what they describe with all characteristic features and proper structure. Always prioritize accuracy and recognition over artistic interpretation."""
+The user's description is your blueprint. Create exactly what they describe with all characteristic features, proper colors, and realistic appearance. Always prioritize accuracy and recognition over artistic interpretation."""
 
     while True:
         user_input = input("Describe the SVG you want (or type 'quit' to quit): ")
