@@ -63,7 +63,7 @@ def generate_svg():
     try:
         user_input = request.json.get('prompt', '').strip()
         
-        # Prompt auf 100 Zeichen limitieren
+        # Limit prompt to 100 characters
         if len(user_input) > 100:
             user_input = user_input[:100]
         
@@ -100,13 +100,13 @@ def download_svg():
         if not svg_content:
             return jsonify({'error': 'No SVG content provided'}), 400
         
-        # Erstelle einen sicheren Dateinamen
+        # Create a safe filename
         safe_filename = "".join(c for c in filename if c.isalnum() or c in (' ', '-', '_')).rstrip()
         safe_filename = safe_filename.replace(' ', '_')[:50]
         if not safe_filename:
             safe_filename = f"svg_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # SVG in einen BytesIO-Stream schreiben
+        # Write SVG to BytesIO stream
         svg_io = io.BytesIO()
         svg_io.write(svg_content.encode('utf-8'))
         svg_io.seek(0)

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -234,17 +234,17 @@
     <div class="container">
         <div class="header">
             <h1>🎨 SVG Generator</h1>
-            <p>Erstellen Sie professionelle SVG-Grafiken mit KI</p>
+            <p>Create professional SVG graphics with AI</p>
         </div>
         
         <div class="main-content">
             <div class="input-section">
                 <div class="input-group">
-                    <label for="promptInput">Beschreiben Sie das SVG, das Sie erstellen möchten:</label>
+                    <label for="promptInput">Describe the SVG you want to create:</label>
                     <div class="input-container">
                         <textarea 
                             id="promptInput" 
-                            placeholder="z.B. Eine einfache Katze mit großen Augen..."
+                            placeholder="e.g. A simple cat with big eyes..."
                             maxlength="100"
                         ></textarea>
                         <div class="char-counter" id="charCounter">0/100</div>
@@ -254,27 +254,27 @@
                 <div class="button-container">
                     <button class="btn" id="generateBtn">
                         <span>🚀</span>
-                        SVG Generieren
+                        Generate SVG
                     </button>
                     <button class="btn btn-download" id="downloadBtn" style="display: none;">
                         <span>⬇️</span>
-                        SVG Herunterladen
+                        Download SVG
                     </button>
                 </div>
             </div>
             
             <div class="loading" id="loadingDiv">
                 <div class="spinner"></div>
-                <p>SVG wird generiert...</p>
+                <p>Generating SVG...</p>
             </div>
             
             <div class="error-message" id="errorMessage"></div>
             <div class="success-message" id="successMessage"></div>
             
             <div class="result-section" id="resultSection">
-                <h3>Generiertes SVG:</h3>
+                <h3>Generated SVG:</h3>
                 <div class="svg-container" id="svgContainer">
-                    <p>Hier wird Ihr generiertes SVG angezeigt</p>
+                    <p>Your generated SVG will be displayed here</p>
                 </div>
             </div>
         </div>
@@ -284,7 +284,7 @@
         let currentSvg = '';
         let currentPrompt = '';
 
-        // Zeichen-Counter
+        // Character counter
         const promptInput = document.getElementById('promptInput');
         const charCounter = document.getElementById('charCounter');
 
@@ -299,17 +299,17 @@
             }
         });
 
-        // SVG generieren
+        // Generate SVG
         document.getElementById('generateBtn').addEventListener('click', async function() {
             const prompt = promptInput.value.trim();
             
             if (!prompt) {
-                showError('Bitte geben Sie eine Beschreibung ein!');
+                showError('Please enter a description!');
                 return;
             }
 
             if (prompt.length > 100) {
-                showError('Die Beschreibung darf maximal 100 Zeichen lang sein!');
+                showError('Description must be max 100 characters!');
                 return;
             }
 
@@ -331,23 +331,23 @@
                 if (data.success) {
                     currentSvg = data.svg;
                     displaySvg(data.svg);
-                    showSuccess('SVG erfolgreich generiert!');
+                    showSuccess('SVG generated successfully!');
                     document.getElementById('downloadBtn').style.display = 'inline-flex';
                 } else {
-                    showError(data.error || 'Fehler beim Generieren des SVG');
+                    showError(data.error || 'Error generating SVG');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showError('Netzwerkfehler. Bitte versuchen Sie es erneut.');
+                showError('Network error. Please try again.');
             } finally {
                 showLoading(false);
             }
         });
 
-        // SVG herunterladen
+        // Download SVG
         document.getElementById('downloadBtn').addEventListener('click', async function() {
             if (!currentSvg) {
-                showError('Kein SVG zum Herunterladen verfügbar!');
+                showError('No SVG available for download!');
                 return;
             }
 
@@ -374,17 +374,17 @@
                     a.click();
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
-                    showSuccess('SVG wurde heruntergeladen!');
+                    showSuccess('SVG downloaded successfully!');
                 } else {
-                    showError('Fehler beim Herunterladen des SVG');
+                    showError('Error downloading SVG');
                 }
             } catch (error) {
                 console.error('Download error:', error);
-                showError('Fehler beim Herunterladen. Bitte versuchen Sie es erneut.');
+                showError('Download error. Please try again.');
             }
         });
 
-        // Enter-Taste zum Generieren
+        // Enter key to generate
         promptInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && e.ctrlKey) {
                 document.getElementById('generateBtn').click();
