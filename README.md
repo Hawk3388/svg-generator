@@ -9,6 +9,25 @@ A simple AI-powered SVG generator that creates SVG graphics from text descriptio
 - Download function for generated SVGs
 - Prompt limit of 100 characters
 
+## Components
+
+### AI-Powered Generation
+
+- **`gemini_main.py`** - Command-line interface using Google Gemini AI
+- **`app.py`** - Flask web application for browser-based usage
+
+### Machine Learning Training (Experimental)
+
+- **`train.py`** - Training script for sequence-to-sequence SVG generation
+- **`svg_tokenizer.py`** - SVG tokenizer for converting SVG to token sequences
+- **`svg_transformer.py`** - Transformer model architecture for SVG generation
+
+### Dataset
+
+- **`dataset/`** - OpenMoji emoji dataset with thousands of SVG files
+- Contains Unicode emoji SVGs from the OpenMoji project
+- Used for training custom SVG generation models
+
 ## Setup
 
 ```bash
@@ -30,6 +49,12 @@ python app.py
 ```
 
 Then open <http://localhost:5000> in your browser.
+
+### Training (Experimental)
+
+```bash
+python train.py
+```
 
 ## Configuration
 
