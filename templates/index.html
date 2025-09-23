@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        #promptInput {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        #promptInput:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .char-counter {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 12px;
+            color: #666;
+            background: rgba(255,255,255,0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .char-counter.warning {
+            color: #e74c3c;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-download {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            margin-left: 10px;
+        }
+
+        .btn-download:hover {
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .svg-container {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .svg-display {
+            max-width: 100%;
+            max-height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            padding: 20px;
+        }
+
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .success-message {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 SVG Generator</h1>
+            <p>Erstellen Sie professionelle SVG-Grafiken mit KI</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="promptInput">Beschreiben Sie das SVG, das Sie erstellen möchten:</label>
+                    <div class="input-container">
+                        <textarea 
+                            id="promptInput" 
+                            placeholder="z.B. Eine einfache Katze mit großen Augen..."
+                            maxlength="100"
+                        ></textarea>
+                        <div class="char-counter" id="charCounter">0/100</div>
+                    </div>
+                </div>
+                
+                <div class="button-container">
+                    <button class="btn" id="generateBtn">
+                        <span>🚀</span>
+                        SVG Generieren
+                    </button>
+                    <button class="btn btn-download" id="downloadBtn" style="display: none;">
+                        <span>⬇️</span>
+                        SVG Herunterladen
+                    </button>
+                </div>
+            </div>
+            
+            <div class="loading" id="loadingDiv">
+                <div class="spinner"></div>
+                <p>SVG wird generiert...</p>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            
+            <div class="result-section" id="resultSection">
+                <h3>Generiertes SVG:</h3>
+                <div class="svg-container" id="svgContainer">
+                    <p>Hier wird Ihr generiertes SVG angezeigt</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSvg = '';
+        let currentPrompt = '';
+
+        // Zeichen-Counter
+        const promptInput = document.getElementById('promptInput');
+        const charCounter = document.getElementById('charCounter');
+
+        promptInput.addEventListener('input', function() {
+            const length = this.value.length;
+            charCounter.textContent = `${length}/100`;
+            
+            if (length >= 90) {
+                charCounter.classList.add('warning');
+            } else {
+                charCounter.classList.remove('warning');
+            }
+        });
+
+        // SVG generieren
+        document.getElementById('generateBtn').addEventListener('click', async function() {
+            const prompt = promptInput.value.trim();
+            
+            if (!prompt) {
+                showError('Bitte geben Sie eine Beschreibung ein!');
+                return;
+            }
+
+            if (prompt.length > 100) {
+                showError('Die Beschreibung darf maximal 100 Zeichen lang sein!');
+                return;
+            }
+
+            currentPrompt = prompt;
+            showLoading(true);
+            hideMessages();
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentSvg = data.svg;
+                    displaySvg(data.svg);
+                    showSuccess('SVG erfolgreich generiert!');
+                    document.getElementById('downloadBtn').style.display = 'inline-flex';
+                } else {
+                    showError(data.error || 'Fehler beim Generieren des SVG');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Netzwerkfehler. Bitte versuchen Sie es erneut.');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // SVG herunterladen
+        document.getElementById('downloadBtn').addEventListener('click', async function() {
+            if (!currentSvg) {
+                showError('Kein SVG zum Herunterladen verfügbar!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        svg: currentSvg,
+                        filename: currentPrompt || 'generated_svg'
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `${currentPrompt || 'generated_svg'}.svg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    showSuccess('SVG wurde heruntergeladen!');
+                } else {
+                    showError('Fehler beim Herunterladen des SVG');
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                showError('Fehler beim Herunterladen. Bitte versuchen Sie es erneut.');
+            }
+        });
+
+        // Enter-Taste zum Generieren
+        promptInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                document.getElementById('generateBtn').click();
+            }
+        });
+
+        function displaySvg(svgContent) {
+            const container = document.getElementById('svgContainer');
+            container.innerHTML = svgContent;
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingDiv').style.display = show ? 'block' : 'none';
+            document.getElementById('generateBtn').disabled = show;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
