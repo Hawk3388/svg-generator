@@ -1,11 +1,10 @@
-from flask import Flask, render_template, request, jsonify, send_file, Response
+from flask import Flask, render_template, request, jsonify, send_file
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from google import genai
 from google.genai import types
 import os
 import io
-import base64
 from datetime import datetime
 
 load_dotenv()
