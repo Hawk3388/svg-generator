@@ -6,7 +6,7 @@ import os
 
 load_dotenv()
 
-model = "gemini-2.5-flash"
+model = "gemini-2.5-flash-lite"
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 class Output_structure(BaseModel):
