@@ -26,6 +26,7 @@ CORE STYLE REQUIREMENTS:
 - Use stroke-width="1-3" for outlines when needed
 - All drawings must be recognizable and proportionally accurate
 - ViewBox must be "0 0 64 64" - utilize the full canvas effectively
+- Keep it focused and clean - avoid overcomplicated designs with too many elements
 
 COLOR AND FILL GUIDELINES:
 - Use realistic colors: green for plants, blue for water, brown for wood, etc.
@@ -57,9 +58,10 @@ STRUCTURAL APPROACH:
 3. Include secondary details that enhance recognition
 4. Add fine details, textures, and color variations for realism
 5. Ensure the final result is immediately identifiable as the requested object
+6. Stop when the object is clearly recognizable - don't over-engineer
 
 ACCURACY IMPERATIVE:
-The user's description is your blueprint. Create exactly what they describe with all characteristic features, proper colors, and realistic appearance. Always prioritize accuracy and recognition over artistic interpretation."""
+The user's description is your blueprint. Create exactly what they describe with all characteristic features, proper colors, and realistic appearance. Focus on clean, straightforward design rather than excessive complexity."""
 
 @app.route('/')
 def index():
